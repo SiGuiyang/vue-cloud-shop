@@ -1,0 +1,325 @@
+<template>
+  <div id="login">
+    <div class="loginBox"
+         @click="changeImage(3)">
+      <div class="auth-form">
+        <div class="panfish">
+          <img :src="imageURL"
+               alt="">
+        </div>
+        <!-- 关闭按钮 -->
+        <van-icon name="close"
+                  class="closeButton"
+                  @click="close" />
+        <!-- 账号密码登录 -->
+        <van-cell-group>
+          <van-field v-model="login_phone"
+                     required
+                     clearable
+                     maxlength="11"
+                     placeholder="请输入手机号"
+                     :error-message="phoneNumberRight?'':'手机号格式不正确'" />
+          <van-field center
+                     clearable
+                     required
+                     maxlength="6"
+                     v-model="smsCaptcha"
+                     placeholder="请输入验证码">
+            <van-button slot="button"
+                        size="small"
+                        type="primary"
+                        v-if="!countDown"
+                        :disabled="captchaDisable"
+                        @click="sendVerifyCode">发送验证码</van-button>
+            <van-button slot="button"
+                        size="small"
+                        type="primary"
+                        disabled=""
+                        v-model="smsCaptcha"
+                        v-else>已发送{{countDown}}s</van-button>
+          </van-field>
+        </van-cell-group>
+        <van-button type="info"
+                    size="large"
+                    style="margin-top:1rem"
+                    @click='login'>登陆</van-button>
+        <!-- 底部声明 -->
+        <p class="agreement">温馨提示：<br>未注册的手机号，登录时将自动注册，且代表同意<a @click.stop="agreement(0)"
+             class="agreement-box">用户协议</a>、<a @click.stop=agreement(1)
+             class="agreement-box">隐私策略</a></p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="text/javascript">
+// 引入Vant的组件
+import { Toast, Dialog } from 'vant'
+// 引入API调用接口
+import { getPhoneCaptcha, phoneCaptchaLogin, pwdLogin } from '../../serve/api/index.js'
+// 引入vuex
+import { mapState, mapActions, mapMutations } from 'vuex'
+
+export default {
+  data () {
+    return {
+      countDown: 0,                 // 倒计时
+      active: 0,
+      login_userName: '',            // 用户名
+      login_password: '',           // 用户密码
+      login_phone: '',              // 手机号码
+
+      register_userName: '',        // 注册用户名
+      register_pwd: '',             // 注册密码
+
+      imgCaptcha: '',               // 图片验证码
+      smsCaptcha: '',               // 短信验证码
+      isShowSMSLogin: true,         // 是否短信登录
+      imageURL: require('./../../images/login/normal.png'),
+      smsCaptchaResult: null,
+      userInfo: null
+    };
+  },
+  computed: {
+    // 1.手机号码验证
+    phoneNumberRight () {
+      let value = this.isShowSMSLogin ? this.login_phone : this.login_userName;
+      // 1.1 当输入的手机号大于10位进行验证
+      if (value.length > 10) {
+        return /[1][3,4,5,6,7,8][0-9]{9}$/.test(value);
+      } else {
+        return true;
+      }
+    },
+    // 2.发送验证码按钮显示
+    captchaDisable () {
+      if (this.login_phone.length > 10 && this.phoneNumberRight) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  },
+  methods: {
+    // 0.mapActions 同步用户信息
+    ...mapActions(['syncuserInfo']),
+    // 2.切换萌猫图片
+    changeImage (index) {
+      if (index == 0) {
+        this.imageURL = require('./../../images/login/greeting.png')
+      } else if (index == 1) {
+        this.imageURL = require('./../../images/login/blindfold.png')
+      } else {
+        this.imageURL = require('./../../images/login/normal.png')
+      }
+    },
+    // 4.获取手机验证码
+    async sendVerifyCode () {
+      this.countDown = 60;
+      this.timeIntervalID = setInterval(() => {
+        this.countDown--;
+        // 4.1 如果减到0 则清除定时器
+        if (this.countDown == 0) {
+          clearInterval(this.timeIntervalID);
+        }
+      }, 1000)
+
+      // 4.2 获取短信验证码
+      let result = await getPhoneCaptcha(this.login_phone);
+      if (result.success_code == 200) {
+        this.smsCaptchaResult = result.data.code;
+        // 4.3  获取验证码成功
+        Dialog.alert({
+          title: '温馨提示:',
+          message: '验证码:' + result.data.code
+        }).then(() => {
+        });
+      }
+    },
+    // 5.登录
+    async login () {
+      if (this.isShowSMSLogin) {
+        // 5.1手机验证码登录
+        // 5.1.1 验证手机号
+        if (!this.phoneNumberRight || this.login_phone.length < 10) {
+          Toast({
+            message: '手机号格式不正确',
+            duration: 800
+          });
+          return;
+        } else if (this.smsCaptcha < 7 || this.smsCaptcha != Number(this.smsCaptchaResult)) {
+          // 5.1.2 验证验证码
+          Toast({
+            message: '请输入正确的验证码',
+            duration: 800
+          });
+          return;
+        }
+        // 5.1.3 请求后台登录接口
+        let ref = await phoneCaptchaLogin(this.login_phone, this.smsCaptcha);
+        // 设置userInfo 保存到vuex和本地
+        this.syncuserInfo(ref.data);
+        this.$router.back();
+      } else {
+        // 5.2 账号密码登录
+        // 5.2.1 验证输入框
+        if (this.login_userName.length < 1) {
+          Toast({
+            message: '手机号',
+            duration: 800
+          });
+          return;
+        } else if (!this.phoneRegex(this.login_userName)) {
+          Toast({
+            message: '手机号格式不正确',
+            duration: 800
+          });
+          return;
+        } else if (this.login_password.length < 1) {
+          Toast({
+            message: '手机号格式不正确',
+            duration: 800
+          });
+          return;
+        } else if (this.imgCaptcha.length < 1) {
+          Toast({
+            message: '请输入正确的验证码',
+            duration: 800
+          });
+          return;
+        }
+        // 5.2.2 请求后台
+        let ref = await phoneCaptchaLogin(this.login_userName, this.login_password);
+        this.syncuserInfo(ref.data);
+        this.$router.back();
+      }
+    },
+    // 6.注册
+    async register () {
+      if (this.register_userName.length < 1) {
+        Toast({
+          message: '手机号不能为空',
+          duration: 800
+        })
+      } else if (!this.phoneRegex(this.register_userName)) {
+        Toast({
+          message: '手机号格式不正确',
+          duration: 800
+        })
+      } else if (this.register_pwd.length < 0) {
+        Toast({
+          message: '请输入密码',
+          duration: 800
+        })
+      } else if (this.register_pwd.length < 6) {
+        Toast({
+          message: '请输入密码(不少于6位)',
+          duration: 800
+        })
+      } else {
+        // 6.1 请求后台登录接口
+        let ref = await phoneCaptchaLogin(this.register_userName, this.register_pwd);
+        // 设置userInfo 保存到vuex和本地
+        this.syncuserInfo(ref.data);
+        this.$router.back();
+      }
+    },
+    // 7.用户协议
+    agreement (index) {
+      if (index == 0) {
+        Toast({
+          message: '用户协议',
+          duration: 800
+        })
+      } else {
+        Toast({
+          message: '隐私策略',
+          duration: 800
+        })
+      }
+    },
+    // 8.关闭
+    close () {
+      this.$router.back();
+    },
+    // 正则验证
+    phoneRegex (number) {
+      return (/[1][3,4,5,6,7,8][0-9]{9}$/.test(number));
+    }
+  }
+}
+</script>
+<style lang="less" scoped>
+#login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("../../images/login/back2.jpg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: fixed;
+  .loginBox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    opacity: 0.95;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 500;
+    .auth-form {
+      position: relative;
+      padding: 2rem;
+      width: 26.5rem;
+      max-width: 90%;
+      font-size: 1.167rem;
+      background-color: #fff;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    img {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      width: 4rem;
+      transform: translate(-50%, -70%);
+      z-index: 1;
+      @media screen and (max-width: 320px) {
+        top: 0.5rem;
+        transform: translate(-50%, -40%);
+        width: 5rem;
+      }
+    }
+    .closeButton {
+      position: absolute;
+      right: 1rem;
+      top: 0.4rem;
+    }
+    .verificationImage {
+      position: absolute;
+      right: 0;
+      width: 8rem;
+      height: 3rem;
+      margin-left: 3rem;
+    }
+  }
+}
+.title {
+  padding: 0.5rem;
+  font-size: 0.5rem;
+  color: grey;
+}
+.agreement {
+  // margin-top: 1.667rem;
+  line-height: 1rem;
+  color: #767676;
+  font-size: 0.867rem;
+  .agreement-box {
+    color: blue;
+  }
+}
+</style>
