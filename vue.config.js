@@ -1,5 +1,5 @@
 const path = require('path')
-function resolve(dir) {
+function resolve (dir) {
   return path.join(__dirname, dir)
 }
 module.exports = {
@@ -13,39 +13,39 @@ module.exports = {
     proxy: {
       // 配置跨域处理 可以设置多个
       '/api': {
-        target:
-          'http://api.7-orange.cn:7300/mock/5def6a2d448e330a1116366e/api/',
-        ws: true,
-        changeOrigin: true
+        target: 'http://127.0.0.1:10000',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': ''
+        }
       }
     }
   },
-  chainWebpack(config) {
+  chainWebpack (config) {
     // svg设置
     config.module
-      .rule('svg')
-      .exclude.add(resolve('src/icons'))
-      .end()
+        .rule('svg')
+        .exclude.add(resolve('src/icons'))
+        .end()
     config.module
-      .rule('icons')
-      .test(/\.svg$/)
-      .include.add(resolve('src/icons'))
-      .end()
-      .use('svg-sprite-loader')
-      .loader('svg-sprite-loader')
-      .options({
-        symbolId: 'icon-[name]'
-      })
-      .end()
+        .rule('icons')
+        .test(/\.svg$/)
+        .include.add(resolve('src/icons'))
+        .end()
+        .use('svg-sprite-loader')
+        .loader('svg-sprite-loader')
+        .options({
+          symbolId: 'icon-[name]'
+        })
+        .end()
 
     if (process.env.NODE_ENV === 'production') {
       if (process.env.npm_config_report) {
         config
-          .plugin('webpack-bundle-analyzer')
-          .use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin)
-          .end()
+            .plugin('webpack-bundle-analyzer')
+            .use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin)
+            .end()
       }
-    } else {
     }
   }
 }

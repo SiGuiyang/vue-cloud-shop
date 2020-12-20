@@ -20,6 +20,8 @@ export const SELECTED_GOODS_PRICE = 'SELECTED_GOODS_PRICE';
 export const DELETE_ALL_GOODS = 'DELETE_ALL_GOODS';
 // 11.用户信息
 export const USER_INFO = 'USER_INFO';
+// 本地访问token
+export const ACCESS_TOKEN = 'ACCESS_TOKEN'
 // 12.初始化用户信息
 export const INIT_USER_INFO = 'INIT_USER_INFO';
 // 13.修改用户昵称

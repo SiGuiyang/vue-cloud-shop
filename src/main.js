@@ -1,19 +1,21 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router/router'
+import router from './router'
 import store from './store/store'
-import FastClick from 'fastclick'
-import VTop from './components/backToTop/ToTop.vue'
-import './icons' // icoš
-// 解决移动端点击延迟200ms的问题
-if ('addEventListener' in document) {
-  document.addEventListener('DOMContentLoaded', function () {
-    FastClick.attach(document.body);
-  }, false);
-}
+import './icons'
+// 全局引入UI库 vant
+import Vant from 'vant'
+import 'vant/lib/index.css'
 
-// 注册为全局组件
-Vue.component('v-top', VTop);
+//  全局引入 过滤器
+import '@/util/filter'
+Vue.use(Vant);
+
+// 注册时可以配置额外的选项
+import { Lazyload } from 'vant'
+Vue.use(Lazyload, {
+  lazyComponent: true,
+});
 
 // 瀑布流
 import waterfall from 'vue-waterfall2'
@@ -21,17 +23,8 @@ Vue.use(waterfall)
 
 Vue.config.productionTip = false
 
-// 全局引入UI库 vant
-import '@/plugins/vant'
-// 全局引入rem
-import '@/config/rem'
-// 全局引入 Reset-css
-import 'reset-css'
-//  全局引入 过滤器
-import '@/config/filter'
-
 new Vue({
   router,
   store,
-  render: h => h(App)
+  render: h => h(App),
 }).$mount('#app')
