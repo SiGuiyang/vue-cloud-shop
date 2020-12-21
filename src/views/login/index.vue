@@ -49,9 +49,9 @@
 
 <script>
 // 引入Vant的组件
-import { Toast, Dialog } from 'vant'
+import { Dialog } from 'vant'
 // 引入API调用接口
-import { postLoginSMSCode, postLogin, postUserInfo } from '@/api/personal'
+import { postLoginSMSCode, postLogin } from '@/api/personal'
 import { setToken } from '@/util/auth'
 import { mapActions } from 'vuex'
 
@@ -111,31 +111,28 @@ export default {
     login () {
       // 验证手机号
       if (!this.phoneNumberRight || this.phone.length < 10) {
-        Toast({
+        this.$toast({
           message: '手机号格式不正确',
           duration: 800
         });
         return;
       }
       postLogin({ phone: this.phone, smsCode: this.smsCode }).then(response => {
-        setToken('access_token', response.access_token)
-        postUserInfo().then(res => {
-          console.log(res.data)
-          this.syncuserInfo(res.data)
-          this.$router.back()
-        })
+        setToken('access_token', response.data.token)
+        this.syncuserInfo(response.data)
+        this.$router.back()
       })
 
     },
     // 7.用户协议
     agreement (index) {
       if (index == 0) {
-        Toast({
+        this.$toast({
           message: '用户协议',
           duration: 800
         })
       } else {
-        Toast({
+        this.$toast({
           message: '隐私策略',
           duration: 800
         })
