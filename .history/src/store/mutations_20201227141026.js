@@ -1,4 +1,3 @@
-import { postCartCreate, postCartPage } from '@/api/cart'
 // 引入mutation-type
 import {
   ADD_GOODS,
@@ -8,7 +7,6 @@ import {
   ALL_SELECT_GOODS,
   DELETE_SELECT_GOODS,
   USER_INFO,
-  ACCESS_TOKEN,
   INIT_USER_INFO,
   CHANGE_USER_NICK_NAME,
   USER_INFO_BRITHDAY,
@@ -20,13 +18,21 @@ import {
   CHANGE_USER_SHOPPING_ADDRESS
 } from './mutation-type'
 import Vue from 'vue'
-import { setToken } from '@/util/auth'
+import Cookies from "js-cookie";
 
-import { Toast } from 'vant'
+import {
+  Toast
+} from 'vant'
 import router from '@/router'
 // 引入本地存储
-import { getLocalStore, setLocalStore, removeLocalStore } from '@/util/global'
-import { ADD_TO_CART } from '@/util/pubsub_type'
+import {
+  getLocalStore,
+  setLocalStore,
+  removeLocalStore
+} from '@/util/global'
+import {
+  ADD_TO_CART
+} from '@/util/pubsub_type'
 
 export default {
   // 注意:外界传值的参数一定要和定义的参数一致 例如 goodsID  isCheckedAll
@@ -41,38 +47,29 @@ export default {
     // 1.1 判断商品是否存在
     if (shopCart[skuId]) {
       // 让数量goodsID里面的num +1
-      shopCart[skuId]['quantity']++;
+      shopCart[skuId]['num']++;
     } else {
       // 1.2 不存在则设置默认值
       shopCart[skuId] = {
-        'quantity': 1,
+        'num': 1,
         'skuId': skuId,
         'skuName': skuName,
         'skuAmount': skuAmount,
         'skuImage': skuImage,
         'checked': true
       }
+      console.log(shopCart)
       // 1.3 给shopCart产生新对象
       state.shopCart = {
         ...shopCart
       };
     }
-    // 添加购物车
-    postCartCreate({ skuId: skuId }).then(() => {
-      Toast({
-        message: '成功加入购物车',
-        duration: 800
-      })
-    })
     // 1.4 将数据存储到本地
-    setLocalStore('shopCart', JSON.stringify(state.shopCart));
+    setLocalStore('shopCart', JSON.parse(shopCart));
   },
   // 2.页面初始化,获取本地购物车的数据
   [INIT_SHOP_CART] (state) {
-    // 2.1 取购物车列表数据
-    postCartPage({ page: 100 }).then(response => {
-      state.shopCart = response.data
-    })
+    // 2.1 先存本地取购物车数据
     let initShopCart = getLocalStore('shopCart');
     if (initShopCart) {
       // 2.1 如何购物车有数据那么就把它通过对象的方式赋值给store
@@ -81,21 +78,21 @@ export default {
   },
   // 3.减少商品
   [REDUCE_GOODS] (state, {
-    skuId
+    goodsID
   }) {
     // 3.1 取出state中的商品数据
     let shopCart = state.shopCart;
     // 3.2 通过商品ID来找到这个商品
-    let goods = shopCart[skuId];
+    let goods = shopCart[goodsID];
     if (goods) {
       // 3.3 找到该商品做处理
-      if (goods['quantity'] > 0) {
+      if (goods['num'] > 0) {
         // 3.4 减少商品数量
-        goods['quantity']--;
+        goods['num']--;
       }
       // 3.4 如果num的数量为0,那么就移除
-      if (goods['quantity'] === 0) {
-        delete shopCart[skuId];
+      if (goods['num'] === 0) {
+        delete shopCart[goodsID];
       }
       // 3.5 同步state中的数据
       state.shopCart = {
@@ -103,13 +100,6 @@ export default {
       };
       // 3.6 同步本地数据
       setLocalStore('shopCart', state.shopCart);
-      // 删除购物车
-      postCartCreate({ skuId: skuId }).then(() => {
-        Toast({
-          message: '删除成功',
-          duration: 800
-        })
-      })
     }
   },
   // 4.单个商品选中
@@ -184,14 +174,7 @@ export default {
     // 7.1 把外界传来的userInfo保存到state中的userInfo
     state.userInfo = JSON.stringify(userInfo);
     // 7.2 保存到本地缓存中
-    setToken('ACCESS_TOKEN', userInfo.token)
     setLocalStore('userInfo', state.userInfo);
-  },
-  [ACCESS_TOKEN] (state, {
-    accessToken
-  }) {
-    state.accessToken = accessToken;
-    setLocalStore('access_token', accessToken)
   },
   //  8.初始化获取用户信息
   [INIT_USER_INFO] (state) {
@@ -312,6 +295,7 @@ export default {
   [ADD_TO_CART] (state, goods) {
     // 判断是否有用户登录
     if (state.userInfo.token) {
+      console.log(goods)
       // 1.3 添加数据
       // 延迟900毫秒等待动画结束
       setTimeout(() => {
@@ -321,10 +305,19 @@ export default {
           skuImage: goods.skuImage,
           skuAmount: goods.skuAmount
         })
+        Toast({
+          message: '成功加入购物车',
+          duration: 800
+        })
       }, 900);
     } else {
       // 1.4 如何没有登录跳转到登录界面
       router.push('/login');
     }
+  },
+  // 切换语言
+  SET_LANGUAGE: (state, language) => {
+    state.language = language;
+    Cookies.set("language", language);
   }
 }

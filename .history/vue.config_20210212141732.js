@@ -13,7 +13,7 @@ module.exports = {
     proxy: {
       // 配置跨域处理 可以设置多个
       '/api': {
-        target: 'http://127.0.0.1:10000',
+        target: 'http://localhost:10000',
         changeOrigin: true,
         pathRewrite: {
           '^/api': ''

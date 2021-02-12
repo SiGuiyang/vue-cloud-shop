@@ -18,19 +18,19 @@
                  :src="user_image.login_icon"
                  alt="">
             <div class="personInfo"
-                 v-if="userInfo.token">
+                 v-if="userInfo.phone">
               <span>{{userInfo.username}}</span>
-              <span>手机号：{{userInfo.phone}}</span>
+              <span>手机号：{{phoneNumber}}</span>
             </div>
           </div>
           <!-- 未登录状态 -->
           <div class="personMsg"
-               v-if="!userInfo.token">
+               v-if="!userInfo.phone">
             <img class="iconImage"
                  :src="user_image.noLogin_icon"
                  alt="">
             <div class="personInfo"
-                 v-if="!userInfo.token">
+                 v-if="!userInfo.phone">
               <div @click="goToPage('/login')">立即登陆</div>
             </div>
           </div>

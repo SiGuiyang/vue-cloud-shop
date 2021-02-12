@@ -11,9 +11,9 @@ const errorCode = [400, 401, 403, 404, 405, 500, 502, 503, 504]
 // request interceptor
 service.interceptors.request.use(
   config => {
-    const token = getToken('ACCESS_TOKEN')
+    const token = getToken('access_token')
     if (token) {
-      config.headers['Authorization'] = 'Bearer ' + getToken('ACCESS_TOKEN')
+      config.headers['Authorization'] = 'Bearer ' + getToken('access_token')
     }
     return config
   },
@@ -42,6 +42,7 @@ service.interceptors.response.use(
   },
   error => {
     const res = error.response
+    console.log(res)
     if (errorCode.indexOf(res.status) !== -1) {
       Toast.fail('服务器发生错误，请稍后重试')
     }

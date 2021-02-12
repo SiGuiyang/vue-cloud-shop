@@ -1,5 +1,6 @@
 import {
-  USER_INFO
+  USER_INFO,
+  ACCESS_TOKEN
 } from './mutation-type'
 import {
   getLocalStore
@@ -13,6 +14,9 @@ export default {
     commit(USER_INFO, {
       userInfo
     });
+  },
+  syncAccessToken ({ commit }, accessToken) {
+    commit(ACCESS_TOKEN, { accessToken })
   },
   // 2.如果本地存在Token 那么就自动登录
   autoLogin ({

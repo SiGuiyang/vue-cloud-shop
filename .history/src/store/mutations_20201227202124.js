@@ -41,11 +41,11 @@ export default {
     // 1.1 判断商品是否存在
     if (shopCart[skuId]) {
       // 让数量goodsID里面的num +1
-      shopCart[skuId]['quantity']++;
+      shopCart[skuId]['num']++;
     } else {
       // 1.2 不存在则设置默认值
       shopCart[skuId] = {
-        'quantity': 1,
+        'num': 1,
         'skuId': skuId,
         'skuName': skuName,
         'skuAmount': skuAmount,
@@ -89,12 +89,12 @@ export default {
     let goods = shopCart[skuId];
     if (goods) {
       // 3.3 找到该商品做处理
-      if (goods['quantity'] > 0) {
+      if (goods['num'] > 0) {
         // 3.4 减少商品数量
-        goods['quantity']--;
+        goods['num']--;
       }
       // 3.4 如果num的数量为0,那么就移除
-      if (goods['quantity'] === 0) {
+      if (goods['num'] === 0) {
         delete shopCart[skuId];
       }
       // 3.5 同步state中的数据

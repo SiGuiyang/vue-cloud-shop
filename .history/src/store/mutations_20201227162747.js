@@ -1,4 +1,4 @@
-import { postCartCreate, postCartPage } from '@/api/cart'
+import { postCartCreate } from '@/api/cart'
 // 引入mutation-type
 import {
   ADD_GOODS,
@@ -41,11 +41,11 @@ export default {
     // 1.1 判断商品是否存在
     if (shopCart[skuId]) {
       // 让数量goodsID里面的num +1
-      shopCart[skuId]['quantity']++;
+      shopCart[skuId]['num']++;
     } else {
       // 1.2 不存在则设置默认值
       shopCart[skuId] = {
-        'quantity': 1,
+        'num': 1,
         'skuId': skuId,
         'skuName': skuName,
         'skuAmount': skuAmount,
@@ -69,10 +69,7 @@ export default {
   },
   // 2.页面初始化,获取本地购物车的数据
   [INIT_SHOP_CART] (state) {
-    // 2.1 取购物车列表数据
-    postCartPage({ page: 100 }).then(response => {
-      state.shopCart = response.data
-    })
+    // 2.1 先存本地取购物车数据
     let initShopCart = getLocalStore('shopCart');
     if (initShopCart) {
       // 2.1 如何购物车有数据那么就把它通过对象的方式赋值给store
@@ -89,12 +86,12 @@ export default {
     let goods = shopCart[skuId];
     if (goods) {
       // 3.3 找到该商品做处理
-      if (goods['quantity'] > 0) {
+      if (goods['num'] > 0) {
         // 3.4 减少商品数量
-        goods['quantity']--;
+        goods['num']--;
       }
       // 3.4 如果num的数量为0,那么就移除
-      if (goods['quantity'] === 0) {
+      if (goods['num'] === 0) {
         delete shopCart[skuId];
       }
       // 3.5 同步state中的数据
@@ -106,7 +103,7 @@ export default {
       // 删除购物车
       postCartCreate({ skuId: skuId }).then(() => {
         Toast({
-          message: '删除成功',
+          message: '成功加入购物车',
           duration: 800
         })
       })

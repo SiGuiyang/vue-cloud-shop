@@ -44,10 +44,10 @@
                 <div class="bottomContent">
                   <p class="shopPrice"> {{goods.skuAmount | moneyFormat}}</p>
                   <div class="shopDeal">
-                    <span @click="reduceGoods(goods.skuId,goods.quantity)">-</span>
+                    <span @click="reduceGoods(goods.skuId,goods.num)">-</span>
                     <input type="number"
                            disabled
-                           v-model="goods.quantity">
+                           v-model="goods.num">
                     <span @click="addGoods(goods.skuId,goods.skuName,goods.skuImage,goods.skuAmount)">+</span>
                   </div>
                 </div>
@@ -166,7 +166,7 @@ export default {
           message: '确定删除该商品吗?'
         }).then(() => {
           // on confirm 确认删除
-          this.REDUCE_GOODS({ skuId });
+          this.REDUCE_GOODS({ goodsID });
         }).catch(() => {
           // on cancel
         });

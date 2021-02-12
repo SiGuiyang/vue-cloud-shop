@@ -89,12 +89,12 @@ export default {
     let goods = shopCart[skuId];
     if (goods) {
       // 3.3 找到该商品做处理
-      if (goods['quantity'] > 0) {
+      if (goods['num'] > 0) {
         // 3.4 减少商品数量
-        goods['quantity']--;
+        goods['num']--;
       }
       // 3.4 如果num的数量为0,那么就移除
-      if (goods['quantity'] === 0) {
+      if (goods['num'] === 0) {
         delete shopCart[skuId];
       }
       // 3.5 同步state中的数据

@@ -24,7 +24,7 @@ export default {
     // let shopCart = JSON.parse(getLocalStore('shopCart'));
     Object.values(shopCart).forEach((good) => {
       if (good.checked) {
-        goodsArray.push(shopCart[good.skuId]);
+        goodsArray.push(shopCart[good.id]);
       }
     });
     return goodsArray;
@@ -36,7 +36,7 @@ export default {
     Object.values(state.shopCart).forEach((goods) => {
       if (goods.checked) {
         // 3.2 计算总价,由于Vant的SubmitBar组件接受的价格格式是保留两位小数且中间不需要.所以需要转换下
-        totalPrice += (goods.skuAmount * goods.num * 100)
+        totalPrice += (goods.price * goods.num * 100)
       }
     });
     return totalPrice;
